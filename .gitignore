@@ -24,7 +24,7 @@ c-third-party/**
 # 
 # Currently intended to just be MaxMind DB, but cannot distribute this, each user should
 # have her own license
-lookup/geo/*
+lookup/geo/*dat
 
 #
 # Logs, duh. 
@@ -32,3 +32,8 @@ log/*
 
 # Passwd file, duh.
 **/htpasswd
+
+# Third-party binary
+bin/*
+
+**/loaderio*
