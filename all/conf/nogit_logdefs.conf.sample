@@ -1,0 +1,8 @@
+log_format abc1_xyz1 '"$remote_addr","$time_local","$arg_evt","$arg_em","$arg_age","$arg_gender","$arg_zip","$arg_url","$arg_cat","$arg_bounty","$msec","$request_time","$enr_browser","$enr_os","$enr_device","$cookie_odsp","$geoip_city_country_code","$geoip_city","$geoip_region","$geoip_postal_code","$geoip_dma_code","$geoip_area_code","$geoip_latitude","$geoip_longitude","$http_referer","$http_user_agent"';
+
+log_format abc1_xyz2 '"SET","$remote_addr","$time_local","$arg_evt","$msec","$request_time","$enr_browser","$enr_os","$enr_device","$cookie_odsp","$geoip_city_country_code","$geoip_city","$geoip_region","$geoip_postal_code","$geoip_dma_code","$geoip_area_code","$geoip_latitude","$geoip_longitude","$http_referer","$http_user_agent"';
+
+log_format abc3_xyz3 '"UNSET","$remote_addr","$time_local","$msec","$request_time","$enr_browser","$enr_os","$enr_device","$cookie_odsp","$geoip_city_country_code","$geoip_city","$geoip_region","$geoip_postal_code","$geoip_dma_code","$geoip_area_code","$geoip_latitude","$geoip_longitude","$http_referer","$http_user_agent"';
+
+
+

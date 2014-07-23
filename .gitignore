@@ -1,0 +1,34 @@
+# Compiled python files
+**/*pyc
+
+# Emacs artefacts
+**/*~
+**/#*#
+
+# Virtual python
+virtupy/**
+
+#
+# Credentials
+skak/skak.ini
+
+#
+# Site-identifiable info. See corresponding .sample files to see what it's like
+all/conf/nogit_*.conf
+py/nogit_*.py
+
+#
+# Code to build things. Instead of including this we'll include instructions
+c-third-party/**
+
+# 
+# Currently intended to just be MaxMind DB, but cannot distribute this, each user should
+# have her own license
+lookup/geo/*
+
+#
+# Logs, duh. 
+log/*
+
+# Passwd file, duh.
+**/htpasswd

@@ -1,0 +1,49 @@
+# 1.
+# Just log...
+location = /abc1/xyz1/ {
+    log_not_found off;
+    access_log /opt/enr/log/abc1.xyz1.enr.log abc1_xyz1;
+    expires -1;
+
+    root /opt/enr/a/htdocs;
+    rewrite ^ /1x1.gif break;
+}
+
+# 2. 
+# Set cookie.
+location = /abc1/xyz2/ {
+    log_not_found off;
+    root /opt/enr/a/htdocs;
+    access_log /opt/enr/log/abc1.xyz2.enr.log abc1_xyz2;
+    expires -1;
+    rewrite_by_lua "
+    
+    -- Set cookie duration based on duration passed in the argument.
+    local dur = ngx.var.arg_dur;
+    if dur == nil then
+       dur = 2592000;
+    end
+    if ngx.var.cookie_c_abc1_xyz2 == nil then
+        local rnd = math.random(1,10000000000)..math.random(1,10000000000)..math.random(1,10000000000)
+        ngx.header['Set-Cookie'] = {'c30pch10='..rnd..';Domain=.opendsp.com;Path=/;Max-Age='..dur..';'}
+    end
+    ";
+    rewrite ^ /1x1.gif break;
+}
+
+# 3. 
+# Unse cookie
+location = /abc1/xyz3/ {
+    log_not_found off;
+    root /opt/enr/a/htdocs;
+    access_log /opt/enr/log/abc1.xyz3.enr.log abc1_xyz3;
+    expires -1;
+    rewrite_by_lua "
+
+    if ngx.var.c_abc1_xyz3 == nil then
+    
+    end
+    ";
+    rewrite ^ /1x1.gif break;
+}
+

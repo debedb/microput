@@ -1,0 +1,1 @@
+add_header Set-Cookie "enr=0000;Domain=.enremmeta.com;Path=/;Max-Age=2592000000";
