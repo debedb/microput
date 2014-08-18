@@ -35,6 +35,8 @@ def run_cmd(cmd):
     return (exit_code, stdout, stderr)
 
 CREDS = None
+
+CONFIG_BUCKET='microput'
        
 def parse_creds(cred_file):
     global CREDS

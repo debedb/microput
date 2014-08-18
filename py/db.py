@@ -24,6 +24,84 @@ class EnrDb(object):
         rows = cur.fetchall()
         cur.close()
         return rows
+
+    def getLogdefs(self):
+        sql = """
+              SELECT ld.client_id, ld.data_collection_id, GROUP_CONCAT( CONCAT_WS( '', '"$', code,'"')) 
+              FROM ld_data_collection_attribute lda
+              JOIN ld_data_collection ld ON lda.data_collection_id = ld.data_collection_id
+              GROUP BY ld.client_id, ld.data_collection_id
+              """
+        rows = self.runSql(sql)
+        return rows
+    
+
+    def getDataCollectionInfo(self):
+        sql = """
+              SELECT c.name,
+              c.client_id,
+              dc.name,
+              dc.data_collection_id,
+              dp.code_type,
+              dp.http_code,
+              dp.redirect_uri,
+              dp.payload_text,
+              ct.name,
+              dpa.name, dpa.expiration_period, dpa.expiration_type, 
+              dpa.default_value,
+              dpa.do_unset
+              FROM ld_client c
+              JOIN ld_data_collection dc ON c.client_id = dc.client_id
+              JOIN ld_data_payload dp ON dc.data_collection_id = dp.data_collection_id
+              LEFT JOIN ld_data_payload_attribute dpa ON dp.data_payload_id = dpa.data_payload_id
+              LEFT JOIN ld_content_type ct ON dp.content_type_id = ct.content_type_id
+              """
+        rows = self.runSql(sql)
+        retval = []
+        prev_id = None
+        prev_d = None
+        d = {}
+        for row in rows:
+            d['client_name'] = row[0]
+            d['client_id']  = row[1]
+            d['dc_name'] = row[2]
+            d['dc_id'] = row[3]
+            print "Found Client %s (%s), DC %s (%s)" % (row[0:4])
+            d['code_type'] = row[4]
+            d['http_code'] = row[5]
+            d['redirect_uri'] = row[6]
+            d['payload_text'] = row[7]
+            d['ct'] = row[8]
+            if d['dc_id'] != prev_id:
+                d['payload'] = []
+            p = {}
+            p['name'] = row[9]
+            expiry = row[10]
+            if expiry:
+                expiry = int(expiry)
+                expiry_type = row[11]
+                if expiry_type == 'minute':
+                    expiry *= 60
+                elif expiry_type == 'hour':
+                    expiry *= 60 * 60
+                elif expiry_type == 'day':
+                    expiry *= 60 * 60 * 24
+                elif expiry_type == 'month':
+                    expiry *= 60 * 60 * 24 * 30
+            p['expiry'] = expiry
+            p['value'] = row[12]
+            p['do_unset'] = row[13]
+            d['payload'].append(p)
+            if not prev_d:
+                retval.append(d)
+            elif prev_d['dc_id'] <> d['dc_id']:
+                retval.append(d)
+            prev_d = d
+        return retval
+        
+
+    def getLatestBundle(self):
+        return self.runSql("SELECT id, locations, logdefs, setcookie FROM stat_bundles ORDER BY id DESC LIMIT 1");
     
     def getBucketForUser(self, user):
         # Internal things are always enremmeta
