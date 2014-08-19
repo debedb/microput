@@ -27,10 +27,11 @@ class EnrDb(object):
 
     def getLogdefs(self):
         sql = """
-              SELECT ld.client_id, ld.data_collection_id, GROUP_CONCAT( CONCAT_WS( '', '"$', code,'"')) 
+              SELECT ld.name, c.name, c.client_id, ld.data_collection_id, GROUP_CONCAT( CONCAT_WS( '', '"$', code,'"')) 
               FROM ld_data_collection_attribute lda
               JOIN ld_data_collection ld ON lda.data_collection_id = ld.data_collection_id
-              GROUP BY ld.client_id, ld.data_collection_id
+              JOIN ld_client c ON ld.client_id = c.client_id
+              GROUP BY c.name, c.client_id, ld.name, ld.data_collection_id
               """
         rows = self.runSql(sql)
         return rows
@@ -101,12 +102,15 @@ class EnrDb(object):
         
 
     def getLatestBundle(self):
-        return self.runSql("SELECT id, locations, logdefs FROM stat_bundles ORDER BY id DESC LIMIT 1");
+        rows =  self.runSql("SELECT id, locations, logdefs FROM stat_bundles ORDER BY id DESC LIMIT 1")
+        if rows:
+            return rows[0]
 
     def addBundle(self, loc, log):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO stat_bundles (locations, logdefs) VALUE ('%s','%s')", (loc, log))
-        return self.con.last_insert_id()
+        cur.execute("INSERT INTO stat_bundles (locations, logdefs) VALUES (%s,%s)", (loc, log))
+        self.con.commit()
+        return cur.lastrowid
     
     def getBucketForUser(self, user):
         # Internal things are always enremmeta

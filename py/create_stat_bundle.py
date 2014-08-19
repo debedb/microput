@@ -2,6 +2,7 @@ import zipfile
 import tempfile
 import json
 import sys
+import os
 
 import MySQLdb
 
@@ -16,15 +17,15 @@ BUCKET='microput'
 dbcon = None
 s3con = None
 
-def generateLocations(dc_info):
+def generateLocations(tmp_dir, dc_info):
     loc_s = ''
     for dc in dc_info:
         rbl = ""
         cbl = ""
         rwr = "";
         loc_s += "# %s (%s) \n" % (dc['dc_name'], dc['client_name'])
-        loc_s += "/c%s/dc%s/ {\n" % (dc['client_id'], dc['dc_id'])
-        loc_s += "log not found off;\n";
+        loc_s += "location = /c%s/dc%s/ {\n" % (dc['client_id'], dc['dc_id'])
+        loc_s += "log_not_found off;\n";
         loc_s += "expires -1;\n";
         loc_s += "root /opt/enr/a/htdocs;\n";
         loc_s += "access_log /opt/enr/log/c%s.dc%s.enr.log c%s_dc%s;\n" % (dc['client_id'], dc['dc_id'], dc['client_id'], dc['dc_id'])
@@ -56,13 +57,19 @@ def generateLocations(dc_info):
         elif code == 204:
             pass
 
-        loc_s += "\n" + 'rewrite_by_lua "' + "\n";
-        loc_s += rbl 
-        loc_s += '";' + "\n";
+        rblfname = "rewrite_%s.lua" % dc['dc_id']
+        rblfpath = tmp_dir + ("/lua/%s" % rblfname)
+        rblf = open(rblfpath, 'w')
+        rblf.write(rbl)
+        rblf.close()
+        loc_s += "\nrewrite_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % rblfname
 
-        loc_s += "\n" + 'content_by_lua "' + "\n";
-        loc_s += cbl
-        loc_s += '";' + "\n";
+        cblfname = "content_%s.lua" % dc['dc_id']
+        cblfpath = tmp_dir + ("/lua/%s" % cblfname)
+        cblf = open(cblfpath, 'w')
+        cblf.write(cbl)
+        cblf.close()
+        loc_s += "\ncontent_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % cblfname
 
         loc_s += "\n" + rwr
 
@@ -88,11 +95,13 @@ def main():
     # help(k)
     s3_version = int(k.get_contents_as_string().strip())
     db_bundle = db.getLatestBundle()
-    print db_bundle
+    db_version = 0
     if not db_bundle:
         db_version = 0
     else:
-        pass
+        print "Bundle in DB: " +  str(db_bundle)
+        db_version = db_bundle[0]
+    print
     print "In DB: %s, on S3: %s" % (db_version, s3_version)
 
     if db_version == s3_version:
@@ -103,20 +112,20 @@ def main():
         
         
     dc_info = db.getDataCollectionInfo()
-    print 'DATA COLLECTIONS'
-    print dc_info
 
     tmp_dir = tempfile.mkdtemp('microput')
+    os.mkdir(tmp_dir + "/lua")
 
     log_s = ''
     logdefs = db.getLogdefs()
     for l in logdefs:
-        log_s += "# \n" 
-        log_s += "log_format c%s_dc%s %s;\n" % l
+        log_s += "\n# %s (%s)\n" % l[0:2]
+        log_s += "log_format c%s_dc%s '%s';\n" % (l[2:])
+    log_s += "\n"
     log_f = tmp_dir + "/nogit_logdefs.conf"
     fwrite(log_f, log_s)
 
-    loc_s = generateLocations(dc_info)
+    loc_s = generateLocations(tmp_dir, dc_info)
     loc_f = tmp_dir + "/nogit_locations.conf"
     fwrite(loc_f, loc_s)
     
@@ -126,8 +135,13 @@ def main():
     zfname = tmp_dir + ("/%s" % bundle)
     print "Creating %s for version %s" % (zfname, new_ver)
     zf = zipfile.ZipFile(zfname, 'w')
-    zf.write(loc_f)
-    zf.write(log_f)
+    add_to_zip(zf,loc_f, os.path.basename(loc_f))
+    add_to_zip(zf,log_f, os.path.basename(log_f))
+    
+    lua_list = os.listdir(tmp_dir + "/lua")
+    for lua_file in lua_list:
+        add_to_zip(zf, lua_file, "lua/" + os.path.basename(lua_file))
+
     zf.close()
     
     s3con = S3Connection(d['akey'], d['skey'])
@@ -142,6 +156,9 @@ def main():
     k.set_contents_from_filename(zfname)
     print "Done!"
     
+def add_to_zip(zf, f, arc):
+    print "Adding %s as %s to %s" % (f, arc, zf)
+    zf.write(f, arc)
     
     
 

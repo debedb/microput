@@ -1,5 +1,6 @@
 import tempfile
 import zipfile
+import os
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -32,12 +33,27 @@ def main():
     if not os.path.exists('/tmp/bundles'):
         os.mkdir('/tmp/bundles')
     b = "bundles/bundle%s.zip" % version
-    bz = open("/tmp/%s" % b, "w")
+    bfname = "/tmp/%s" % b
+    bz = open(bfname, "w")
     print "Fetching version %s from %s into %s" % (version, b, bz)
     k.key = b
     k.get_contents_to_file(bz)
-    zf = zipfile.ZipFile(gz, 'r')
-    
+    bz.close()
+
+    conf_dir = ENR_HOME + '/all/conf'
+    print "Changing directory to %s" % conf_dir
+    os.chdir(conf_dir)
+    print "Unzipping %s" % bfname
+    zf = zipfile.ZipFile(bfname, 'r')
+    for zfinfo in zf.infolist():
+        fname = zfinfo.filename
+        print "Extracting %s from %s" % (fname, bfname)
+        zf.extract(zfinfo)
+    print "Restarting nginx"
+    (exit_code, out,err) = run_cmd(['service','nginx','restart'])
+    print out
+    print err
+    sys.exit(exit_code)
     
 
 
