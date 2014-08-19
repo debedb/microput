@@ -43,12 +43,9 @@ def main():
     conf_dir = ENR_HOME + '/all/conf'
     print "Changing directory to %s" % conf_dir
     os.chdir(conf_dir)
-    print "Unzipping %s" % bfname
+    print "Unzipping %s into %s" % (bfname, conf_dir)
     zf = zipfile.ZipFile(bfname, 'r')
-    for zfinfo in zf.infolist():
-        fname = zfinfo.filename
-        print "Extracting %s from %s" % (fname, bfname)
-        zf.extract(zfinfo)
+    zf.extractall(conf_dir)
     print "Restarting nginx"
     (exit_code, out,err) = run_cmd(['service','nginx','restart'])
     print out

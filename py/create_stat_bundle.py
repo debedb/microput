@@ -20,34 +20,39 @@ s3con = None
 def generateLocations(tmp_dir, dc_info):
     loc_s = ''
     for dc in dc_info:
+        print "Processing %s..." % dc
         rbl = ""
         cbl = ""
         rwr = "";
         loc_s += "# %s (%s) \n" % (dc['dc_name'], dc['client_name'])
         loc_s += "location = /c%s/dc%s/ {\n" % (dc['client_id'], dc['dc_id'])
-        loc_s += "log_not_found off;\n";
-        loc_s += "expires -1;\n";
-        loc_s += "root /opt/enr/a/htdocs;\n";
-        loc_s += "access_log /opt/enr/log/c%s.dc%s.enr.log c%s_dc%s;\n" % (dc['client_id'], dc['dc_id'], dc['client_id'], dc['dc_id'])
+        loc_s += "\tlog_not_found off;\n";
+        loc_s += "\texpires -1;\n";
+        loc_s += "\troot /opt/enr/a/htdocs;\n";
+        loc_s += "\taccess_log /opt/enr/log/c%s.dc%s.enr.log c%s_dc%s;\n" % (dc['client_id'], dc['dc_id'], dc['client_id'], dc['dc_id'])
 
         code = dc['http_code']
         code_type = dc['code_type']
 
         for p in dc['payload']:
-            if p['do_unset'] == 'N':
+            if p['do_unset'] == 'Y':
                 pass
             else:
                 rbl += "ngx.header['Set-Cookie'] = {'%s=%s;Domain=.opendsp.com;Path=/;Max-Age=%s;'}\n" % (p['name'],p['value'],p['expiry'])
-        
+
+
         if code == 200:
             if code_type == 'image':
-                rwr = "rewrite ^ /1x1.gif break;\n";
+                print "Simple 1x1 pixel..."
+                rwr = "\trewrite ^ /1x1.gif";
+                rwr += "\tbreak;\n";
             else:
                 payload_text = dc['payload_text']
                 if not dc['payload_text']:
                     payload_text = "OK"
                     dc['ct'] = "text/html";
                 payload_text = json.dumps(payload_text)
+                print "Custom text."
                 rbl += "ngx.header['Content-Type'] = \"%s\"\n" % dc['ct']
                 cbl += 'ngx.say(%s)' % payload_text
                 cbl += "\n"
@@ -62,17 +67,22 @@ def generateLocations(tmp_dir, dc_info):
         rblf = open(rblfpath, 'w')
         rblf.write(rbl)
         rblf.close()
-        loc_s += "\nrewrite_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % rblfname
 
-        cblfname = "content_%s.lua" % dc['dc_id']
-        cblfpath = tmp_dir + ("/lua/%s" % cblfname)
-        cblf = open(cblfpath, 'w')
-        cblf.write(cbl)
-        cblf.close()
-        loc_s += "\ncontent_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % cblfname
+        loc_s += "\n\trewrite_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % rblfname
 
-        loc_s += "\n" + rwr
-
+        if cbl:
+            cblfname = "content_%s.lua" % dc['dc_id']
+            cblfpath = tmp_dir + ("/lua/%s" % cblfname)
+            cblf = open(cblfpath, 'w')
+            cblf.write(cbl)
+            cblf.close()
+            loc_s += "\n\tcontent_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % cblfname
+            loc_s += "\tbreak;\n";
+            if rwr:
+                print "!!! Rewrite section remaining, not writing: " + rwr
+        else:
+            loc_s += "\n\t" + rwr
+            
         loc_s += "}\n\n"
         return loc_s
 
@@ -140,6 +150,7 @@ def main():
     
     lua_list = os.listdir(tmp_dir + "/lua")
     for lua_file in lua_list:
+        lua_file = tmp_dir + "/lua/" + lua_file
         add_to_zip(zf, lua_file, "lua/" + os.path.basename(lua_file))
 
     zf.close()
