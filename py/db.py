@@ -101,7 +101,12 @@ class EnrDb(object):
         
 
     def getLatestBundle(self):
-        return self.runSql("SELECT id, locations, logdefs, setcookie FROM stat_bundles ORDER BY id DESC LIMIT 1");
+        return self.runSql("SELECT id, locations, logdefs FROM stat_bundles ORDER BY id DESC LIMIT 1");
+
+    def addBundle(self, loc, log):
+        cur = self.con.cursor()
+        cur.execute("INSERT INTO stat_bundles (locations, logdefs) VALUE ('%s','%s')", (loc, log))
+        return self.con.last_insert_id()
     
     def getBucketForUser(self, user):
         # Internal things are always enremmeta

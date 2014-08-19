@@ -1,6 +1,10 @@
+import tempfile
+import zipfile
+
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 import MySQLdb
+
 import sys
 from common import *
 
@@ -32,6 +36,7 @@ def main():
     print "Fetching version %s from %s into %s" % (version, b, bz)
     k.key = b
     k.get_contents_to_file(bz)
+    zf = zipfile.ZipFile(gz, 'r')
     
     
 
