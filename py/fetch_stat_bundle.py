@@ -48,7 +48,7 @@ def main():
     zf = zipfile.ZipFile(bfname, 'r')
     zf.extractall(conf_dir)
     print "Restarting nginx"
-    (exit_code, out,err) = run_cmd(['service','nginx','restart'])
+    (exit_code, out,err) = run_cmd(['/sbin/service','nginx','restart'])
     print out
     print err
     sys.exit(exit_code)
