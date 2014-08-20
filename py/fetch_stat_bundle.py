@@ -54,12 +54,13 @@ def main():
     zf = zipfile.ZipFile(bfname, 'r')
     zf.extractall(conf_dir)
     print "Restarting nginx"
-    (exit_code, out,err) = run_cmd(['/sbin/service','nginx','restart'])
+    (exit_code, out,err) = run_cmd(['/sbin/service','nginx','reload'])
     print out
     print err
+    print "Error code: %s" % exit_code
+    if exit_code:
+        print "Rolling back...."
     sys.exit(exit_code)
-    
-
 
 if __name__ == "__main__":
     print

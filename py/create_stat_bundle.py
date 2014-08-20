@@ -19,9 +19,10 @@ dbcon = None
 s3con = None
 
 def generateLocations(tmp_dir, dc_info):
-    loc_s = ''
+    all_loc_s = ''
     print 'Fetched %s data collections' % len(dc_info)
     for dc in dc_info:
+        loc_s = ''
         print "Processing %s..." % dc
         rbl = ""
         cbl = ""
@@ -37,11 +38,14 @@ def generateLocations(tmp_dir, dc_info):
         code_type = dc['code_type']
 
         for p in dc['payload']:
-            if p['do_unset'] == 'Y':
+            if False and p['do_unset'] == 'Y':
                 pass
             else:
                 rbl += "ngx.header['Set-Cookie'] = {'%s=%s;Domain=.opendsp.com;Path=/;Max-Age=%s;'}\n" % (p['name'],p['value'],p['expiry'])
 
+        if code not in [200,204,301,302]:
+            print "Invalid HTTP code %s, skipping." % code
+            continue
         if code == 200:
             if code_type == 'image':
                 print "Simple 1x1 pixel..."
@@ -53,7 +57,6 @@ def generateLocations(tmp_dir, dc_info):
                     payload_text = "OK"
                     dc['ct'] = "text/html";
                 payload_text = json.dumps(payload_text)
-                print "Custom text."
                 rbl += "ngx.header['Content-Type'] = \"%s\"\n" % dc['ct']
                 cbl += 'ngx.say(%s)' % payload_text
                 cbl += "\n"
@@ -62,17 +65,23 @@ def generateLocations(tmp_dir, dc_info):
             rwr += "break;\n";
         elif code == 204:
             pass
-
-        rblfname = "rewrite_%s.lua" % dc['dc_id']
-        rblfpath = tmp_dir + ("/lua/%s" % rblfname)
-        rblf = open(rblfpath, 'w')
-        rblf.write(rbl)
-        rblf.close()
-
-        loc_s += "\n\trewrite_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % rblfname
+        
+        if rbl:
+            rblfname = "rewrite_%s.lua" % dc['dc_id']
+            print "%s:" % rblfname
+            print rbl
+            print
+            rblfpath = tmp_dir + ("/lua/%s" % rblfname)
+            rblf = open(rblfpath, 'w')
+            rblf.write(rbl)
+            rblf.close()
+            loc_s += "\n\trewrite_by_lua_file /opt/enr/all/conf/lua/%s;\n"  % rblfname
 
         if cbl:
             cblfname = "content_%s.lua" % dc['dc_id']
+            print "%s:" % cblfname
+            print cbl
+            print
             cblfpath = tmp_dir + ("/lua/%s" % cblfname)
             cblf = open(cblfpath, 'w')
             cblf.write(cbl)
@@ -85,7 +94,12 @@ def generateLocations(tmp_dir, dc_info):
             loc_s += "\n\t" + rwr
             
         loc_s += "}\n\n"
-    return loc_s
+        print "Location:"
+        print loc_s
+        print 
+        print
+        all_loc_s += loc_s
+    return all_loc_s
 
 def fwrite(fname, s):
     f = open(fname, "w")
@@ -137,7 +151,7 @@ def main():
     loc_f = tmp_dir + "/nogit_locations.conf"
     fwrite(loc_f, loc_s)
 
-    if db_bundle[1] == loc_s and db_bundle[2] == log_s:
+    if db_bundle and db_bundle[1] == loc_s and db_bundle[2] == log_s:
         new_ver = db_version
     else:
         new_ver = db.addBundle(loc_s, log_s)
