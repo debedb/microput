@@ -20,6 +20,7 @@ s3con = None
 
 def generateLocations(tmp_dir, dc_info):
     loc_s = ''
+    print 'Fetched %s data collections' % len(dc_info)
     for dc in dc_info:
         print "Processing %s..." % dc
         rbl = ""
@@ -85,11 +86,11 @@ def generateLocations(tmp_dir, dc_info):
             loc_s += "\n\t" + rwr
             
         loc_s += "}\n\n"
-        return loc_s
+    return loc_s
 
 def fwrite(fname, s):
     f = open(fname, "w")
-    print "Wrting to %s " % fname
+    print "Writing to %s " % fname
     f.write(s)
     f.close()
 
@@ -177,14 +178,9 @@ def main():
 def add_to_zip(zf, f, arc):
     print "Adding %s as %s to %s" % (f, arc, zf)
     zf.write(f, arc)
-    
-    
-
-    
-    
-        
-    
 
 
 if __name__ == "__main__":
+    print
+    print '================================================='
     main()

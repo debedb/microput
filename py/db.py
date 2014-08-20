@@ -1,5 +1,8 @@
-from common import *
+from copy import deepcopy
+
 import MySQLdb
+
+from common import *
 
 class EnrDb(object):
     def __init__(self):
@@ -55,7 +58,7 @@ class EnrDb(object):
               dpa.do_unset
               FROM ld_client c
               JOIN ld_data_collection dc ON c.client_id = dc.client_id
-              JOIN ld_data_payload dp ON dc.data_collection_id = dp.data_collection_id
+              LEFT JOIN ld_data_payload dp ON dc.data_collection_id = dp.data_collection_id
               LEFT JOIN ld_data_payload_attribute dpa ON dp.data_payload_id = dpa.data_payload_id
               LEFT JOIN ld_content_type ct ON dp.content_type_id = ct.content_type_id
               """
@@ -76,6 +79,7 @@ class EnrDb(object):
             d['payload_text'] = row[7]
             d['ct'] = row[8]
             if d['dc_id'] != prev_id:
+                print "Creating payload for new data collection: %s" % d['dc_id']
                 d['payload'] = []
             p = {}
             p['name'] = row[9]
@@ -96,10 +100,12 @@ class EnrDb(object):
             p['do_unset'] = row[13]
             d['payload'].append(p)
             if not prev_d:
-                retval.append(d)
+                print "New data collection: %s" % d['dc_id']
+                retval.append(deepcopy(d))
             elif prev_d['dc_id'] <> d['dc_id']:
-                retval.append(d)
-            prev_d = d
+                print "New data collection: %s" % d['dc_id']
+                retval.append(deepcopy(d))
+            prev_d = deepcopy(d)
         return retval
         
 
