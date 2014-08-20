@@ -31,11 +31,11 @@ class EnrDb(object):
     def getLogdefs(self):
         sql = """
               SELECT ld.name, c.name, c.client_id, ld.data_collection_id, 
-              GROUP_CONCAT(CONCAT_WS( '', '"$', REPLACE(code, ' ','_'),'"') ORDER BY lda.order_index, lda.code) 
-              FROM ld_data_collection_attribute lda
-              JOIN ld_data_collection ld ON lda.data_collection_id = ld.data_collection_id
+              GROUP_CONCAT(CONCAT_WS( '', '"$', REPLACE(IF(code='','arg_placeholder',IFNULL(code,'arg_placeholder')), ' ','_'),'"') ORDER BY lda.order_index, lda.code) 
+              FROM ld_data_collection ld
+              LEFT JOIN ld_data_collection_attribute lda
+              ON lda.data_collection_id = ld.data_collection_id
               JOIN ld_client c ON ld.client_id = c.client_id
-              WHERE NOT ISNULL(code) AND LENGTH(code) > 0
               GROUP BY c.name, c.client_id, ld.name, ld.data_collection_id
               ORDER BY lda.order_index, lda.code
               """

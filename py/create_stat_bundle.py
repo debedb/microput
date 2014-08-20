@@ -42,7 +42,6 @@ def generateLocations(tmp_dir, dc_info):
             else:
                 rbl += "ngx.header['Set-Cookie'] = {'%s=%s;Domain=.opendsp.com;Path=/;Max-Age=%s;'}\n" % (p['name'],p['value'],p['expiry'])
 
-
         if code == 200:
             if code_type == 'image':
                 print "Simple 1x1 pixel..."
@@ -59,7 +58,7 @@ def generateLocations(tmp_dir, dc_info):
                 cbl += 'ngx.say(%s)' % payload_text
                 cbl += "\n"
         elif code in (301, 302):
-            rwr = "rewrite ^ /bar redirect;\n";
+            rwr = "return %s %s;\n" % (code, dc['redirect_uri'])
             rwr += "break;\n";
         elif code == 204:
             pass
