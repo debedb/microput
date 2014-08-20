@@ -115,9 +115,6 @@ def main():
     print
     print "In DB: %s, on S3: %s" % (db_version, s3_version)
 
-    if db_version == s3_version:
-        print "All up to date at version %s" % db_version
-        sys.exit()
     if db_version < s3_version:
         print "I have no idea what's over there on S3..."
         
@@ -139,8 +136,15 @@ def main():
     loc_s = generateLocations(tmp_dir, dc_info)
     loc_f = tmp_dir + "/nogit_locations.conf"
     fwrite(loc_f, loc_s)
-    
-    new_ver = db.addBundle(loc_s, log_s)
+
+    if db_bundle[1] == loc_s and db_bundle[2] == log_s:
+        new_ver = db_version
+    else:
+        new_ver = db.addBundle(loc_s, log_s)
+
+    if new_ver == s3_version:
+        print "All up to date at version %s" % db_version
+        sys.exit()
 
     bundle = "bundle%s.zip" % new_ver
     zfname = tmp_dir + ("/%s" % bundle)
@@ -155,6 +159,8 @@ def main():
         add_to_zip(zf, lua_file, "lua/" + os.path.basename(lua_file))
 
     zf.close()
+
+
     
     s3con = S3Connection(d['akey'], d['skey'])
     bucket = s3con.get_bucket(CONFIG_BUCKET)
