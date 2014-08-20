@@ -53,7 +53,7 @@ def main():
     print "Unzipping %s into %s" % (bfname, conf_dir)
     zf = zipfile.ZipFile(bfname, 'r')
     zf.extractall(conf_dir)
-    print "Restarting nginx"
+    print "Reloading nginx"
     (exit_code, out,err) = run_cmd(['/sbin/service','nginx','reload'])
     print out
     print err

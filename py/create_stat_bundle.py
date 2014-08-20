@@ -151,18 +151,10 @@ def main():
     loc_f = tmp_dir + "/nogit_locations.conf"
     fwrite(loc_f, loc_s)
 
-    if db_bundle and db_bundle[1] == loc_s and db_bundle[2] == log_s:
-        new_ver = db_version
-    else:
-        new_ver = db.addBundle(loc_s, log_s)
 
-    if new_ver == s3_version:
-        print "All up to date at version %s" % db_version
-        sys.exit()
-
-    bundle = "bundle%s.zip" % new_ver
+    bundle = "bundle" 
     zfname = tmp_dir + ("/%s" % bundle)
-    print "Creating %s for version %s" % (zfname, new_ver)
+    print "Creating %s" % (zfname)
     zf = zipfile.ZipFile(zfname, 'w')
     add_to_zip(zf,loc_f, os.path.basename(loc_f))
     add_to_zip(zf,log_f, os.path.basename(log_f))
@@ -173,8 +165,30 @@ def main():
         add_to_zip(zf, lua_file, "lua/" + os.path.basename(lua_file))
 
     zf.close()
+    print "Now let's try this..."
+    
+    print "Reloading nginx"
+    (exit_code, out,err) = run_cmd(['/sbin/service','nginx','reload'])
+    print out
+    print err
+    print "Error code: %s" % exit_code
+    if exit_code:
+        print "Bad bundle, we cannot generate this."
+        sys.exit(exit_code)
 
+    if db_bundle and db_bundle[1] == loc_s and db_bundle[2] == log_s:
+        new_ver = db_version
+    else:
+        new_ver = db.addBundle(loc_s, log_s)
 
+    if new_ver == s3_version:
+        print "All up to date at version %s" % db_version
+        sys.exit()
+
+    new_zfname = zfname + "%s.zip" % new_ver
+    
+    print "Renaming %s to %s" % (zfname, new_zfname)
+    os.rename(zfname, new_zfname)
     
     s3con = S3Connection(d['akey'], d['skey'])
     bucket = s3con.get_bucket(CONFIG_BUCKET)
@@ -184,8 +198,8 @@ def main():
     k.set_contents_from_string(new_ver)
 
     print "Uploading bundle"
-    k.key = "bundles/" + bundle
-    k.set_contents_from_filename(zfname)
+    k.key = "bundles/bundle%s.zip" % new_ver
+    k.set_contents_from_filename(new_zfname)
     print "Done!"
     
 def add_to_zip(zf, f, arc):
