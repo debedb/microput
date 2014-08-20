@@ -21,8 +21,14 @@ def main():
     k.key = "VERSION.TXT"
     # help(k)
     version = int(k.get_contents_as_string().strip())
-    with open(ENR_HOME + '/all/conf/VERSION.TXT') as f:
-        cur_version = int(f.read().strip())
+    try:
+        with open(ENR_HOME + '/all/conf/VERSION.TXT') as f:
+            cur_version = int(f.read().strip())
+    except IOError, e:
+        if e.errno == 2:
+            cur_version = 0
+        else:
+            raise
     print 'Comparing %s to %s' % (version, cur_version)
     if cur_version == version:
         print "Up-to-date, bye."
