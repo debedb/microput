@@ -42,6 +42,9 @@ def generateLocations(tmp_dir, dc_info):
                 pass
             else:
                 rbl += "ngx.header['Set-Cookie'] = {'%s=%s;Domain=.opendsp.com;Path=/;Max-Age=%s;'}\n" % (p['name'],p['value'],p['expiry'])
+        
+        if not code:
+            code = 200
 
         if code not in [200,204,301,302]:
             print "Invalid HTTP code %s, skipping." % code
