@@ -168,8 +168,15 @@ def main():
         add_to_zip(zf, lua_file, "lua/" + os.path.basename(lua_file))
 
     zf.close()
-    print "Now let's try this..."
-    
+
+    print "Now let's try this bundle..."
+    conf_dir = ENR_HOME + '/all/conf'
+    print "Changing directory to %s" % conf_dir
+    os.chdir(conf_dir)
+    print "Unzipping %s into %s" % (zfname, conf_dir)
+    zf = zipfile.ZipFile(zfname, 'r')
+    zf.extractall(conf_dir)
+
     print "Reloading nginx"
     (exit_code, out,err) = run_cmd(['/sbin/service','nginx','reload'])
     print out
