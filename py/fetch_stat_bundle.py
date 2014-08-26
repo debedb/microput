@@ -58,6 +58,13 @@ def main():
     print out
     print err
     print "Error code: %s" % exit_code
+
+    bucket = s3con.get_bucket(CONFIG_BUCKET)
+    k = Key(bucket)
+    k.key = "VERSION.TXT"
+    vf = open(ENR_HOME + "/all/conf/VERSION.TXT",'w')
+    k.get_contents_to_file(vf)
+    vf.close()
     if exit_code:
         print "Rolling back...."
     sys.exit(exit_code)
