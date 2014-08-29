@@ -21,6 +21,10 @@ s3con = None
 def generateLocations(tmp_dir, dc_info):
     all_loc_s = ''
     print 'Fetched %s data collections' % len(dc_info)
+    if not len(dc_info):
+        print "No data collections found, exiting..."
+        sys.exit(1)
+
     for dc in dc_info:
         loc_s = ''
         print "Processing %s..." % dc
@@ -95,7 +99,6 @@ def generateLocations(tmp_dir, dc_info):
                 print "!!! Rewrite section remaining, not writing: " + rwr
         else:
             loc_s += "\n\t" + rwr
-            
         loc_s += "}\n\n"
         print "Location:"
         print loc_s
@@ -109,7 +112,6 @@ def fwrite(fname, s):
     print "Writing to %s " % fname
     f.write(s)
     f.close()
-
 
 def main():
     global s3con, dbcon
@@ -143,6 +145,9 @@ def main():
 
     log_s = ''
     logdefs = db.getLogdefs()
+    if not logdefs:
+        print "No log definitions found, exiting."
+        sys.exit(1)
     for l in logdefs:
         log_s += "\n# %s (%s)\n" % l[0:2]
         log_s += "log_format c%s_dc%s '%s';\n" % (l[2:])
