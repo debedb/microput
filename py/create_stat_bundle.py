@@ -156,9 +156,9 @@ def main():
         c_name = l[1].lower()
         c_name = re.sub('[^0-9a-zA-Z]+', '', c_name)
         segment = "%s_%s.%s_%s" % (c_name,l[2],ld_name,l[3])
-        
+        # temporary hack
         fields = l[4].replace('time_local','time_iso8601')
-        log_s += "log_format c%s_dc%s '\"$uid_got\",\"$uid_set\",\"$uid_reset\",%s,\"%s\"';\n" % (l[2],l[3],fields, segment)
+        log_s += "log_format c%s_dc%s '$uid_got\\t$uid_set\\t$uid_reset\\t%s\\t%s';\n" % (l[2],l[3],fields, segment)
     log_s += "\n"
     log_f = tmp_dir + "/nogit_logdefs.conf"
     fwrite(log_f, log_s)
