@@ -71,12 +71,12 @@ def process_file(log_file):
     log_file_full = os.path.join(LOG_DIR, log_file)
     
     # Date first
-    key_prefix = 'enr/year=%s/month=%s/day=%s/hour=%s/user=%s/table=%s' % (year, month, day, hour, user, table)
+    key_prefix = 'year=%s/month=%s/day=%s/hour=%s/user=%s/table=%s' % (year, month, day, hour, user, table)
     upload(conn, S3_BUCKET_DATE_FIRST, key_prefix, log_file_remote, log_file_full)
 
 
     # User first
-    key_prefix = 'enr/user=%s/table=%s/year=%s/month=%s/day=%s/hour=%s' % (user, table, year, month, day, hour)
+    key_prefix = 'user=%s/table=%s/year=%s/month=%s/day=%s/hour=%s' % (user, table, year, month, day, hour)
     upload(conn, S3_BUCKET_USER_FIRST, key_prefix, log_file_remote, log_file_full)
     
     os.unlink(log_file_full)
