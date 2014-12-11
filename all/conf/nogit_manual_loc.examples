@@ -1,0 +1,30 @@
+# Custom Opt-Intelligence (https://baatoot.atlassian.net/browse/OB-31)
+location = /oi/p1/ {
+	log_not_found off;
+	expires -1;
+	root /opt/enr/a/htdocs;
+	access_log /opt/enr/log/oi.p3.enr.log oi_p3;
+	rewrite_by_lua '
+            local evt = ngx.req.get_query_args()["evt"]
+   	    ngx.header["Set-Cookie"] = {"odsp_"..evt.."=1;Domain=.clear-request.com;Path=/;Max-Age=345600;"}
+        ';
+	rewrite ^ /1x1.gif break;
+}
+
+# Custom Opt-Intelligence (https://baatoot.atlassian.net/browse/OB-31)
+location = /oi/p0/ {
+	log_not_found off;
+	expires -1;
+	root /opt/enr/a/htdocs;
+	access_log /opt/enr/log/oi.p0.enr.log oi_p3;
+	content_by_lua '
+	local redir_url = ""
+	if ngx.var.http_x_forwarded_proto then
+	   redir_url = ngx.var.http_x_forwarded_proto.."://s.opendsp.com/oi/p1odsp/?"..ngx.var.query_string
+        else
+           redir_url = "http://s.opendsp.com/oi/p1odsp/?"..ngx.var.query_string
+        end
+	ngx.redirect(redir_url, ngx.HTTP_MOVED_TEMPORARILY)
+	';
+	break;
+}

@@ -16,9 +16,6 @@ CONF_DIR = ENR_HOME + '/all/conf'
 
 COMPRESSION = "gz"
 
-def bucketForUser(user):
-    return MAIN_BUCKET_NAME
-
 def run_cmd(cmd):
     log("Executing %s" % cmd)
     p = Popen(cmd)
@@ -36,7 +33,7 @@ def run_cmd(cmd):
 
 CREDS = None
 
-CONFIG_BUCKET='microput'
+CONFIG_BUCKET='bin.opendsp.com'
        
 def parse_creds(cred_file):
     global CREDS

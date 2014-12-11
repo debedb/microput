@@ -18,7 +18,7 @@ def main():
     s3con = S3Connection(d['akey'], d['skey'])
     bucket = s3con.get_bucket(CONFIG_BUCKET)
     k = Key(bucket)
-    k.key = "VERSION.TXT"
+    k.key = "microput/VERSION.TXT"
     # help(k)
     version = int(k.get_contents_as_string().strip())
     try:
@@ -39,7 +39,7 @@ def main():
     print "Upgrading %s to %s..." % (cur_version, version)
     if not os.path.exists('/tmp/bundles'):
         os.mkdir('/tmp/bundles')
-    b = "bundles/bundle%s.zip" % version
+    b = "microput/bundles/bundle%s.zip" % version
     bfname = "/tmp/%s" % b
     bz = open(bfname, "w")
     print "Fetching version %s from %s into %s" % (version, b, bz)
@@ -61,7 +61,7 @@ def main():
 
     bucket = s3con.get_bucket(CONFIG_BUCKET)
     k = Key(bucket)
-    k.key = "VERSION.TXT"
+    k.key = "microput/VERSION.TXT"
     vf = open(ENR_HOME + "/all/conf/VERSION.TXT",'w')
     k.get_contents_to_file(vf)
     vf.close()

@@ -72,12 +72,14 @@ def process_file(log_file):
     
     # Date first
     key_prefix = 'year=%s/month=%s/day=%s/hour=%s/user=%s/table=%s' % (year, month, day, hour, user, table)
-    upload(conn, S3_BUCKET_DATE_FIRST, key_prefix, log_file_remote, log_file_full)
+    for b1 in S3_BUCKETS_DATE_FIRST:
+        upload(conn, b1, key_prefix, log_file_remote, log_file_full)
 
 
     # User first
     key_prefix = 'user=%s/table=%s/year=%s/month=%s/day=%s/hour=%s' % (user, table, year, month, day, hour)
-    upload(conn, S3_BUCKET_USER_FIRST, key_prefix, log_file_remote, log_file_full)
+    for b2 in S3_BUCKETS_USER_FIRST:
+        upload(conn, b2, key_prefix, log_file_remote, log_file_full)
     
     os.unlink(log_file_full)
 
