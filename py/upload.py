@@ -87,7 +87,7 @@ def upload(conn, bucket_name, key_prefix, remote_name, local_name):
     bucket = conn.get_bucket(bucket_name)    
     k = Key(bucket)
     k.key = key_prefix  + "/" + remote_name
-    log("In bucket %s, putting %s under %s" % (bucket_name, local_name, k.key))
+    log("UPLOAD: In bucket %s, putting %s under %s" % (bucket_name, local_name, k.key))
     log(k.set_contents_from_filename(local_name))
 
              

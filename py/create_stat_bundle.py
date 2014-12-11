@@ -14,8 +14,6 @@ from boto.s3.key import Key
 from common import *
 from db import *
 
-BUCKET='microput'
-
 dbcon = None
 s3con = None
 
@@ -122,7 +120,7 @@ def main():
     s3con = S3Connection(d['akey'], d['skey'])
     bucket = s3con.get_bucket(CONFIG_BUCKET)
     k = Key(bucket)
-    k.key = "VERSION.TXT"
+    k.key = "microput/VERSION.TXT"
     # help(k)
     s3_version = int(k.get_contents_as_string().strip())
     db_bundle = db.getLatestBundle()
@@ -216,12 +214,12 @@ def main():
     s3con = S3Connection(d['akey'], d['skey'])
     bucket = s3con.get_bucket(CONFIG_BUCKET)
     k = Key(bucket)
-    k.key = "VERSION.TXT"
+    k.key = "microput/VERSION.TXT"
     print "Changing version on S3"
     k.set_contents_from_string(new_ver)
 
     print "Uploading bundle"
-    k.key = "bundles/bundle%s.zip" % new_ver
+    k.key = "microput/bundles/bundle%s.zip" % new_ver
     k.set_contents_from_filename(new_zfname)
     print "Done!"
     
